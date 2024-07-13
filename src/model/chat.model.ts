@@ -1,12 +1,12 @@
-import mongoose, {Schema, Document} from "mongoose";
+import mongoose, {Schema, Document, Types} from "mongoose";
 
 export interface ChatType extends Document{
     name: string,
     isGroupChat: boolean,
     groupAvatar: string,
-    admin: mongoose.Types.ObjectId[],
-    lastMessage: mongoose.Types.ObjectId | null,
-    members: mongoose.Types.ObjectId[],
+    admin: Types.ObjectId[],
+    lastMessage: Types.ObjectId | null,
+    members: Types.ObjectId[],
 }
 
 const ChatSchema: Schema<ChatType> = new Schema({
@@ -25,22 +25,22 @@ const ChatSchema: Schema<ChatType> = new Schema({
     admin: [
         {
             type: Schema.Types.ObjectId,
-            ref: "user"
+            ref: "users"
         }
     ],
     lastMessage: {
         type: Schema.Types.ObjectId,
-        ref: "",
+        ref: "messages",
         default: null
     },
     members: [
         {
             type: Schema.Types.ObjectId,
-            ref: "user"
+            ref: "users"
         }
     ]
 }, { timestamps: true })
 
-const ChatModel = mongoose.models?.chat as mongoose.Model<ChatType> || mongoose.model<ChatType>("chat", ChatSchema)
+const ChatModel = mongoose.models?.chats as mongoose.Model<ChatType> || mongoose.model<ChatType>("chats", ChatSchema)
 
 export default ChatModel

@@ -35,6 +35,6 @@ const UserSchema: Schema<UserType> = new Schema({
     timestamps: true
 })
 
-const UserModel = mongoose.models?.user as mongoose.Model<UserType> || mongoose.model<UserType>("user", UserSchema)
+const UserModel = mongoose.models?.users as mongoose.Model<UserType> || mongoose.model<UserType>("users", UserSchema)
 
 export default UserModel
