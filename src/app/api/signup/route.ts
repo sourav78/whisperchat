@@ -11,31 +11,34 @@ export async function POST(request: Request){
         
         const {name, username, password} = await request.json()
 
+        //Validating user info with zod
         const validatedUserSchema = SignupSchema.safeParse({
             name,
             username,
             password
         })
 
-        console.log(validatedUserSchema);
         if(!validatedUserSchema.success){
             const zodError = validatedUserSchema.error.issues[0].message;
             return Response.json({
                 success: false,
                 message: zodError
-            }, {status: 400})
+            }, {status: 406})
         }
 
+        //Find existing user from database
         const exitingUser = await UserModel.findOne({username})
         if(exitingUser){
             return Response.json({
                 success: false,
                 message: "User with same username already exist."
-            }, {status: 400})
+            }, {status: 403})
         }
 
+        //create a hashed password from original password
         const hashedPassword = await bcrypt.hash(password, 10)
 
+        //create a new user in the database
         await UserModel.create({
             name,
             username,
@@ -45,7 +48,7 @@ export async function POST(request: Request){
         return Response.json({
             success: true,
             message: "User registerd successfully."
-        }, {status: 200})
+        }, {status: 201})
 
     } catch (error) {
         return Response.json({
