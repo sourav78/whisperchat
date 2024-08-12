@@ -1,17 +1,70 @@
+"use client"
+
 import React from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import * as z from 'zod'
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { SigninSchema } from "@/schema/signinSchema";
+import { Form, FormControl, FormField, FormItem, FormLabel } from "../ui/form";
+import { signIn } from "next-auth/react";
+import { useToast } from "../ui/use-toast";
+import { useRouter } from "next/navigation";
 
 const SigninCard = () => {
+
+  const {toast} = useToast()
+  const router = useRouter()
+
+  const form = useForm<z.infer<typeof SigninSchema>>({
+    resolver: zodResolver(SigninSchema),
+    defaultValues: {
+      username: "",
+      password: "",
+    }
+  });
+
+  const onSubmit = async (data: z.infer<typeof SigninSchema>) => {
+
+    console.log(data.username);
+    console.log(data.password);
+    
+
+    const result = await signIn("credentials", {
+      redirect: false,
+      username: data.username,
+      password: data.password
+    })
+
+    if(result?.error){
+      if(result.error === "CredentialsSignin"){
+        toast({
+          title: "Error",
+          description: "Invalid username or password",
+          variant: "destructive"
+        })
+      }else{
+        toast({
+          title: "Error",
+          description: result.error,
+          variant: "destructive"
+        })
+      }
+    }
+
+    if(result?.url){
+      router.replace("/")
+    }
+  }
+
   return (
     <Card>
       <CardHeader>
@@ -21,18 +74,36 @@ const SigninCard = () => {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-2">
-        <div className="space-y-1">
-          <Label htmlFor="username">Username</Label>
-          <Input id="username" />
-        </div>
-        <div className="space-y-1">
-          <Label htmlFor="pawword">Password</Label>
-          <Input id="pawword" />
-        </div>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="username"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Username</FormLabel>
+                  <FormControl>
+                    <Input {...field} />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="password"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Password</FormLabel>
+                  <FormControl>
+                    <Input {...field} />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+            <Button className="w-full" type="submit">Signin</Button>
+          </form>
+        </Form>
       </CardContent>
-      <CardFooter>
-        <Button className="w-full">Signin</Button>
-      </CardFooter>
     </Card>
   );
 };
