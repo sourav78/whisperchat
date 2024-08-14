@@ -1,6 +1,6 @@
 "use client"
 
-import React from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -18,11 +18,14 @@ import { Form, FormControl, FormField, FormItem, FormLabel } from "../ui/form";
 import { signIn } from "next-auth/react";
 import { useToast } from "../ui/use-toast";
 import { useRouter } from "next/navigation";
+import { Loader2 } from "lucide-react";
 
 const SigninCard = () => {
 
   const {toast} = useToast()
   const router = useRouter()
+
+  const [isLoggingin, setIsLoggingin] = useState<boolean>(false)
 
   const form = useForm<z.infer<typeof SigninSchema>>({
     resolver: zodResolver(SigninSchema),
@@ -33,10 +36,8 @@ const SigninCard = () => {
   });
 
   const onSubmit = async (data: z.infer<typeof SigninSchema>) => {
-
-    console.log(data.username);
-    console.log(data.password);
     
+    setIsLoggingin(true)
 
     const result = await signIn("credentials", {
       redirect: false,
@@ -59,6 +60,7 @@ const SigninCard = () => {
         })
       }
     }
+    setIsLoggingin(false)
 
     if(result?.url){
       router.replace("/")
@@ -95,12 +97,12 @@ const SigninCard = () => {
                 <FormItem>
                   <FormLabel>Password</FormLabel>
                   <FormControl>
-                    <Input {...field} />
+                    <Input type="password" {...field} />
                   </FormControl>
                 </FormItem>
               )}
             />
-            <Button className="w-full" type="submit">Signin</Button>
+            <Button className="w-full" type="submit">{isLoggingin ? (<Loader2 className="animate-spin"/>) : "Signin"}</Button>
           </form>
         </Form>
       </CardContent>

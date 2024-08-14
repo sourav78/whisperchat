@@ -21,6 +21,7 @@ import {useDebounceCallback} from 'usehooks-ts'
 import axios, { AxiosError } from 'axios'
 import { ApiResponse } from "@/types/Apiresponse";
 import { Loader2 } from "lucide-react";
+import { signIn } from "next-auth/react";
 
 const SignupCard = () => {
 
@@ -78,17 +79,41 @@ const SignupCard = () => {
       const response = await axios.post<ApiResponse>("/api/signup", data)
 
       toast({
-        title: "Success",
-        description: response.data.message
+        title: response.data.message
       })
 
-      router.replace("/onboarding")
+      router.replace("/onboarding", {
+        
+      })
+
+      // const userSignin = await signIn("credentials", {
+      //   redirect: false,
+      //   username: data.username,
+      //   password: data.password
+      // })
+
+      // if(userSignin?.error){
+      //   if(userSignin.error === "CredentialsSignin"){
+      //     toast({
+      //       title: "Invalid username or password",
+      //       variant: "destructive"
+      //     })
+      //   }else{
+      //     toast({
+      //       title: userSignin.error,
+      //       variant: "destructive"
+      //     })
+      //   }
+      // }
+
+      // if(userSignin?.url){
+      //   router.replace("/onboarding")
+      // }
     }catch(error){
       const axiosError = error as AxiosError<ApiResponse>
 
       toast({
-        title: "Error",
-        description: axiosError.response?.data.message ?? "There was a problem with your sign-up. Please try again.",
+        title: axiosError.response?.data.message ?? "There was a problem with your sign-up. Please try again.",
         variant: "destructive"
       })
     }finally{
@@ -158,7 +183,7 @@ const SignupCard = () => {
                 <FormItem>
                   <FormLabel>Password</FormLabel>
                   <FormControl>
-                    <Input {...field} />
+                    <Input type="password" {...field} />
                   </FormControl>
                 </FormItem>
               )}
