@@ -141,6 +141,7 @@ const Onboarding = () => {
                     </Label>
                     <Input
                       type="file"
+                      accept="image/*"
                       className="hidden"
                       id="avtar"
                       onChange={onImageChange}

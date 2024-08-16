@@ -47,7 +47,7 @@ export const POST = async (req: NextRequest) => {
         
         return Response.json({
             success: false,
-            message: "Error on onboarding."
+            message: error
         }, {status: 500})
     }
 }
