@@ -82,9 +82,17 @@ const SignupCard = () => {
         title: response.data.message
       })
 
-      router.replace("/onboarding", {
-        
-      })
+      const authData: z.infer<typeof SignupSchema> = {
+        username: data.username,
+        name: data.name,
+        password: data.password
+      }
+
+      const enCodedAuth = btoa(JSON.stringify(authData))
+
+      localStorage.setItem("adenc", enCodedAuth)
+
+      router.push("/onboarding")
 
       // const userSignin = await signIn("credentials", {
       //   redirect: false,
@@ -111,6 +119,8 @@ const SignupCard = () => {
       // }
     }catch(error){
       const axiosError = error as AxiosError<ApiResponse>
+      console.log(error);
+      
 
       toast({
         title: axiosError.response?.data.message ?? "There was a problem with your sign-up. Please try again.",

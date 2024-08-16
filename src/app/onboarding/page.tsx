@@ -5,31 +5,34 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/components/ui/use-toast";
+import { SignupSchema } from "@/schema/signupSchema";
 import { ApiResponse } from "@/types/Apiresponse";
 import axios, { AxiosError } from "axios";
 import { ImagePlus, Loader2 } from "lucide-react";
 import { signIn, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import React, { ChangeEvent, FormEvent, useEffect, useState } from "react";
+import * as z from "zod"
 
 const Onboarding = () => {
-  const { data: session } = useSession();
 
   const router = useRouter()
-
+  
+  const [authData, setAuthData] = useState<z.infer<typeof SignupSchema> | null>(null);
   const [name, setName] = useState<string | undefined>("");
+
+  useEffect(() => {
+    const authData: z.infer<typeof SignupSchema> = JSON.parse(atob(localStorage.getItem("adenc")!))
+    setAuthData(authData)
+    setName(authData.name)
+  }, [])
+
   const [bio, setBio] = useState<string>("");
   const [image, setImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | ArrayBuffer | null>(
     null
   );
   const [isSaving, setIsSaving] = useState(false)
-
-  useEffect(() => {
-    if (session) {
-      setName(session.user.name);
-    }
-  }, [session]);
 
   const onImageChange = (e: ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -59,8 +62,8 @@ const Onboarding = () => {
         })
         return
       }
-      formData.append('name', name)
-      formData.append('username', session?.user.username!)
+      formData.append('name', authData?.name!)
+      formData.append('username', authData?.username!)
       formData.append('bio', bio)
 
       const response = await axios.post<ApiResponse>("/api/onboarding", formData)
@@ -69,7 +72,31 @@ const Onboarding = () => {
         title: response.data.message
       })
 
-      router.push("/auth")
+      const userSignin = await signIn("credentials", {
+        redirect: false,
+        username: authData?.username,
+        password: authData?.password
+      })
+      
+
+      if(userSignin?.error){
+        if(userSignin.error === "CredentialsSignin"){
+          toast({
+            title: "Invalid username or password",
+            variant: "destructive"
+          })
+        }else{
+          toast({
+            title: userSignin.error,
+            variant: "destructive"
+          })
+        }
+      }
+
+      if(userSignin?.url){
+        localStorage.removeItem("adenc")
+        router.replace("/")
+      }
 
     }catch(error: any){
       const axiosError = error as AxiosError<ApiResponse>
@@ -100,7 +127,7 @@ const Onboarding = () => {
                       src={
                         imagePreview
                           ? (imagePreview as string)
-                          : session?.user.avatar
+                          : "https://res.cloudinary.com/sourav78/image/upload/v1720806850/whishper/users/dmrfftkzammnayfczffx.png"
                       }
                       alt=""
                     />
